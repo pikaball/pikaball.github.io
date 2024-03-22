@@ -24,7 +24,7 @@
 <meta property="og:description" content="近日尝试用sagemath自带的roots()求解\(f(x) \equiv 0 \pmod{p^a}\)，发现速度极慢。了解到Hensel&#39;s Lemma可以解决这个问题，但我在sagemath的申必文档中并未搜索到该方法的直接实现。故自己写了一个。 简述 Hensel&#39;s lemma Hensel’s Lemma 用于将 \(f(x) \equiv 0 \pmod {p}\) 的">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-03-22T13:10:50.000Z">
-<meta property="article:modified_time" content="2024-03-22T17:01:36.089Z">
+<meta property="article:modified_time" content="2024-03-22T18:00:03.521Z">
 <meta property="article:author" content="pikaball">
 <meta property="article:tag" content="Sagemath">
 <meta name="twitter:card" content="summary_large_image">
@@ -330,7 +330,7 @@ class="math inline">\(GF(p^k)\)</span>，记 <span
 class="math inline">\(r_k\)</span> 为 <span class="math inline">\(f(x)
 \equiv 0 \pmod {p^{k}}\)</span> 的解</p>
 <ul>
-<li>若 <span class="math inline">\(f&#39;(r_{k-1}}) \not\equiv
+<li>若 <span class="math inline">\(f&#39;(r_{k-1}) \not\equiv
 0\)</span>, 则有唯一的<span class="math inline">\(t\)</span>使得 <span
 class="math inline">\(f(r_{k-1} + tp^{k-1}) \equiv 0 \pmod{p^k}\)</span>
 成立，此时<span class="math inline">\(r_k = r_{k-1} -
