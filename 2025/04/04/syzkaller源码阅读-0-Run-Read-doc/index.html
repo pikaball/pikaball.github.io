@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://pikaball.cc/img/syzkaller/0/syz-repro.png">
 <meta property="og:image" content="https://pikaball.cc/img/syzkaller/0/c-repro.png">
 <meta property="article:published_time" content="2025-04-04T15:39:41.000Z">
-<meta property="article:modified_time" content="2025-04-09T06:20:06.730Z">
+<meta property="article:modified_time" content="2025-04-09T06:36:08.167Z">
 <meta property="article:author" content="pikaball">
 <meta property="article:tag" content="code review">
 <meta property="article:tag" content="go">
@@ -372,7 +372,7 @@
 <p><code>has C repro</code>则对应<code>C reproducer</code>，提供一个C编写的程序。</p>
 <p><img src="/../img/syzkaller/0/c-repro.png" srcset="/img/loading.gif" lazyload alt="C repro"></p>
 <p>此外，还可以使用syzkaller提供的工具进行手动reproduce并执行复现程序，参考<code>docs/reproducing_crashes.md</code></p>
-<h2 id="tools"><a href="#tools" class="headerlink" title="tools"></a>tools</h2><p>syzkaller提供了很多实用小工具，都在<code>/tools</code>目录下。</p>
+<h2 id="tools"><a href="#tools" class="headerlink" title="tools"></a>tools</h2><p>syzkaller提供了很多实用小工具，都在<code>tools</code>目录下。</p>
 <p><code>syz-cover</code>可以使用kcov信息（从web dashboard的<code>/rawcover</code>获取）生成可视化的coverage报告，<code>syz-benchcmp</code>可以接收两个覆盖率记录生成对比图，<code>syz-db</code>可以添加&#x2F;移除corpus.db中的语料，其他的在这里就不一一列举了，可以自行探索。</p>
 <h1 id="summarize"><a href="#summarize" class="headerlink" title="summarize"></a>summarize</h1><p>本文梳理了syzkaller的启动流程和文档信息，大致描述了syzkaller的运行结构，从文档初窥syzkaller的系统性设计思路。下一篇将正式开始源码审计，分析syzkaller的架构逻辑和策略实现。</p>
 
